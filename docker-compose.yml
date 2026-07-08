@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: merge-mongo
+    ports:
+      - "27017:27017"
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }"
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    container_name: merge-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  judge0-db:
+    image: postgres:15-alpine
+    container_name: merge-judge0-db
+    environment:
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+    volumes:
+      - judge0_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U judge0"]
+      interval: 5s
+      retries: 10
+
+  judge0-redis:
+    image: redis:7-alpine
+    container_name: merge-judge0-redis
+
+  judge0:
+    image: judge0/judge0:latest
+    container_name: merge-judge0
+    ports:
+      - "2358:2358"
+    environment:
+      - REDIS_URL=redis://judge0-redis:6379
+      - DATABASE_URL=postgres://judge0:judge0@judge0-db:5432/judge0
+      - ENABLE_NETWORK=false
+      - CPU_TIME_LIMIT=2
+      - MEMORY_LIMIT=262144
+    depends_on:
+      judge0-db:
+        condition: service_healthy
+      judge0-redis:
+        condition: service_started
+
+  backend:
+    build:
+      context: ./backend/Merge-
+      dockerfile: Dockerfile.dev
+    container_name: merge-backend
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - MONGODB_URI=mongodb://mongo:27017/merge?replicaSet=rs0
+      - REDIS_URL=redis://redis:6379
+      - JUDGE0_URL=http://judge0:2358
+    volumes:
+      - ./backend/Merge-:/app
+      - backend_maven_cache:/root/.m2
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge0:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: merge-frontend
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  redis_data:
+  judge0_db_data:
+  backend_maven_cache:
