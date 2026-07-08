@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.test.context.ActiveProfiles;
+
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 class SessionServiceTests {

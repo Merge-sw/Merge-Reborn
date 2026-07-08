@@ -21,6 +21,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * NAVIGATED_AWAY and EXHAUSTED come from the client endpoint.
  * This layer tests the underlying endSession logic for all four.
  */
+import org.springframework.test.context.ActiveProfiles;
+
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 class SessionEndTest {

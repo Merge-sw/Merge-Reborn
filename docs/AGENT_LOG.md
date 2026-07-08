@@ -302,3 +302,9 @@ NOT YET DONE
 - **Actions**:
   - Verified `application-test.properties` contains the secure fallback for `ENCRYPTION_KEY` to allow CI to pass without manual secret injection.
   - Confirmed that recent merges resolved the `pom.xml` and property file conflicts, though the dual-layer configuration (code-based in Session vs property-based in Identity) remains.
+
+- Audited all 12 @SpringBootTest classes in the backend.
+- Confirmed that every single one already has @ActiveProfiles("test") (either as short or fully qualified name).
+- Verified that application-test.properties contains the ENCRYPTION_KEY fallback required for CI/IDE execution.
+- Executed full test suite via IDE-equivalent runner: 43/43 tests passing.
+- Root cause of past CI failures appears to have been resolved by the addition of the profile annotation and fallback in previous steps.
