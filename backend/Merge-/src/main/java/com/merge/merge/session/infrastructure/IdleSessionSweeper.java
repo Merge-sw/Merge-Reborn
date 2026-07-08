@@ -1,5 +1,8 @@
-package com.merge.merge.session;
+package com.merge.merge.session.infrastructure;
 
+import com.merge.merge.session.model.EndReason;
+import com.merge.merge.session.model.Session;
+import com.merge.merge.session.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

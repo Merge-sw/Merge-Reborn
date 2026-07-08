@@ -1,4 +1,4 @@
-package com.merge.merge.session;
+package com.merge.merge.session.infrastructure;
 
 import org.bson.UuidRepresentation;
 import org.springframework.boot.mongodb.autoconfigure.MongoClientSettingsBuilderCustomizer;

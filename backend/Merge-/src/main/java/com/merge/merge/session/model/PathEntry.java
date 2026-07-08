@@ -1,4 +1,4 @@
-package com.merge.merge.session;
+package com.merge.merge.session.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

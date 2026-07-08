@@ -1,4 +1,4 @@
-package com.merge.merge.session;
+package com.merge.merge.session.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +17,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "sessions")
-@CompoundIndex(name = "unique_open_session_per_student", def = "{'studentId': 1}", unique = true, partialFilter = "{'endedAt': {'$eq': null}}")
+@CompoundIndex(
+        name = "unique_open_session_per_student",
+        def = "{'studentId': 1}",
+        unique = true,
+        partialFilter = "{'endedAt': {'$eq': null}}"
+)
 public class Session {
     @Id
     private UUID id;

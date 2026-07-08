@@ -1,4 +1,7 @@
-package com.merge.merge.session;
+package com.merge.merge.session.web;
+
+import com.merge.merge.session.model.EndReason;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Request body for {@code POST /sessions/{id}/end}.
@@ -8,5 +11,4 @@ package com.merge.merge.session;
  * (Milestone 9) and {@link EndReason#IDLE_TIMEOUT} is set by the idle sweep
  * (Milestone 2).  Neither may be sent by the client.</p>
  */
-record EndSessionRequest(EndReason reason) {
-}
+public record EndSessionRequest(@NotNull EndReason reason) {}

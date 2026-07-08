@@ -1,4 +1,7 @@
-package com.merge.merge.session;
+package com.merge.merge.session.web;
+
+import com.merge.merge.session.model.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
@@ -16,10 +19,10 @@ import java.util.UUID;
  * {@link ActionType#CONCEPT_BUILD_ATTEMPT} only; it is null for
  * {@link ActionType#RESOURCE_VIEW} and {@link ActionType#CHAT_INTERACTION}.</p>
  */
-record AppendActionRequest(
-        ActionType actionType,
-        UUID conceptId,
-        Mood moodAtAction,
+public record AppendActionRequest(
+        @NotNull ActionType actionType,
+        @NotNull UUID conceptId,
+        @NotNull Mood moodAtAction,
         Result result,
         TopicRelevance topicRelevance,
         InquiryDepth inquiryDepth

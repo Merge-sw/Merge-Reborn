@@ -1,5 +1,6 @@
-package com.merge.merge.session;
+package com.merge.merge.session.repository;
 
+import com.merge.merge.session.model.Session;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

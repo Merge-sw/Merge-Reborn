@@ -1,4 +1,4 @@
-package com.merge.merge.session;
+package com.merge.merge.session.model;
 
 public enum TopicRelevance {
     ON_CONCEPT,

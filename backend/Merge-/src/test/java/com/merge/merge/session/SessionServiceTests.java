@@ -1,6 +1,9 @@
 package com.merge.merge.session;
 
 import com.merge.merge.TestcontainersConfiguration;
+import com.merge.merge.session.model.*;
+import com.merge.merge.session.repository.SessionRepository;
+import com.merge.merge.session.service.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

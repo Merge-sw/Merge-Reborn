@@ -1,5 +1,8 @@
-package com.merge.merge.session;
+package com.merge.merge.session.service;
 
+import com.merge.merge.session.model.*;
+import com.merge.merge.session.repository.SessionRepository;
+import com.merge.merge.session.web.AppendActionRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -47,6 +50,19 @@ public class SessionService {
     }
 
     // -------------------------------------------------------------------------
+    // Session lookup
+    // -------------------------------------------------------------------------
+
+    public boolean hasOpenSession(UUID studentId) {
+        return sessionRepository.findByStudentIdAndEndedAtIsNull(studentId).isPresent();
+    }
+
+    public Session getSession(UUID sessionId) {
+        return sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+    }
+
+    // -------------------------------------------------------------------------
     // Action path
     // -------------------------------------------------------------------------
 
@@ -69,7 +85,7 @@ public class SessionService {
      * @throws SessionNotFoundException     if no session with the given id exists
      * @throws SessionAlreadyEndedException if the session is already closed
      */
-    Session appendAction(UUID sessionId, AppendActionRequest request) {
+    public Session appendAction(UUID sessionId, AppendActionRequest request) {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
 
@@ -133,10 +149,10 @@ public class SessionService {
      * (NAVIGATED_AWAY, EXHAUSTED).  Callers that face the client are responsible
      * for restricting which reasons they accept before calling here.</p>
      *
-     * @throws SessionNotFoundException   if no session with the given id exists
+     * @throws SessionNotFoundException     if no session with the given id exists
      * @throws SessionAlreadyEndedException if the session is already closed
      */
-    Session endSession(UUID sessionId, EndReason reason) {
+    public Session endSession(UUID sessionId, EndReason reason) {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
 
@@ -158,7 +174,7 @@ public class SessionService {
      * FRESH or OKAY → FULL_FORCE.  EXHAUSTED → EXHAUSTED.
      * The client sets mood; the server derives type; the client never sets type directly.
      */
-    static SessionType deriveType(Mood mood) {
+    public static SessionType deriveType(Mood mood) {
         return switch (mood) {
             case FRESH, OKAY -> SessionType.FULL_FORCE;
             case EXHAUSTED -> SessionType.EXHAUSTED;

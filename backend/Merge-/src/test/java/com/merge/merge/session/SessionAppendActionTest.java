@@ -1,6 +1,12 @@
 package com.merge.merge.session;
 
 import com.merge.merge.TestcontainersConfiguration;
+import com.merge.merge.session.model.*;
+import com.merge.merge.session.repository.SessionRepository;
+import com.merge.merge.session.service.SessionAlreadyEndedException;
+import com.merge.merge.session.service.SessionNotFoundException;
+import com.merge.merge.session.service.SessionService;
+import com.merge.merge.session.web.AppendActionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +59,6 @@ class SessionAppendActionTest {
         UUID conceptId = UUID.randomUUID();
 
         Session afterFirst = sessionService.appendAction(session.getId(), resourceViewRequest(conceptId, Mood.FRESH));
-        // MongoDB stores Instant at millisecond precision; truncate before comparing to avoid
-        // a spurious mismatch between the in-memory nano-precision value and the DB round-trip.
         Instant startedAtMillis = afterFirst.getStartedAt().truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
 
         Session afterSecond = sessionService.appendAction(session.getId(), resourceViewRequest(conceptId, Mood.FRESH));
@@ -71,7 +75,6 @@ class SessionAppendActionTest {
         Session session = openSession();
         Instant beforeAppend = session.getLastActivityAt();
 
-        // Small sleep to ensure the clock advances measurably
         try { Thread.sleep(10); } catch (InterruptedException ignored) {}
 
         Session updated = sessionService.appendAction(session.getId(), resourceViewRequest(UUID.randomUUID(), Mood.FRESH));
@@ -172,8 +175,6 @@ class SessionAppendActionTest {
 
     @Test
     void resource_view_and_drill_attempt_on_same_concept_are_independently_required() {
-        // First RESOURCE_VIEW → wasRequired=true
-        // First DRILL_ATTEMPT on the same concept → also wasRequired=true (different actionType)
         Session session = openSession();
         UUID conceptId = UUID.randomUUID();
 
