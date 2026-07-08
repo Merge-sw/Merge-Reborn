@@ -17,14 +17,16 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
 
+    // -------------------------------------------------------------------------
+    // Session creation
+    // -------------------------------------------------------------------------
+
     public Session getOrCreateOpenSession(UUID studentId, Mood initialMood) {
-        // First, check if there's already an open session
         Optional<Session> openSession = sessionRepository.findByStudentIdAndEndedAtIsNull(studentId);
         if (openSession.isPresent()) {
             return openSession.get();
         }
 
-        // If not, build and try to save a new one
         Session newSession = Session.builder()
                 .id(UUID.randomUUID())
                 .studentId(studentId)
@@ -38,18 +40,53 @@ public class SessionService {
             return sessionRepository.save(newSession);
         } catch (DuplicateKeyException e) {
             log.info("Concurrent session creation detected for studentId: {}. Returning existing session.", studentId);
-            // In case of a duplicate key race condition, retrieve the open session that was successfully inserted
             return sessionRepository.findByStudentIdAndEndedAtIsNull(studentId)
-                    .orElseThrow(() -> new IllegalStateException("Duplicate session creation detected, but could not find the existing open session.", e));
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Duplicate session creation detected, but could not find the existing open session.", e));
         }
     }
 
-    private SessionType deriveType(Mood mood) {
-        if (mood == Mood.FRESH || mood == Mood.OKAY) {
-            return SessionType.FULL_FORCE;
-        } else if (mood == Mood.EXHAUSTED) {
-            return SessionType.EXHAUSTED;
+    // -------------------------------------------------------------------------
+    // Session end
+    // -------------------------------------------------------------------------
+
+    /**
+     * Ends an open session with the given reason.
+     *
+     * <p>This method is the single close path used by the idle sweep (IDLE_TIMEOUT),
+     * the Build-passed event listener (COMPLETED), and the REST endpoint
+     * (NAVIGATED_AWAY, EXHAUSTED).  Callers that face the client are responsible
+     * for restricting which reasons they accept before calling here.</p>
+     *
+     * @throws SessionNotFoundException   if no session with the given id exists
+     * @throws SessionAlreadyEndedException if the session is already closed
+     */
+    Session endSession(UUID sessionId, EndReason reason) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+
+        if (session.getEndedAt() != null) {
+            throw new SessionAlreadyEndedException(sessionId);
         }
-        throw new IllegalArgumentException("Unsupported mood: " + mood);
+
+        session.setEndedAt(Instant.now());
+        session.setEndReason(reason);
+        return sessionRepository.save(session);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mood → type derivation (PRD Section 6)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Derives the session type from the student-reported mood.
+     * FRESH or OKAY → FULL_FORCE.  EXHAUSTED → EXHAUSTED.
+     * The client sets mood; the server derives type; the client never sets type directly.
+     */
+    static SessionType deriveType(Mood mood) {
+        return switch (mood) {
+            case FRESH, OKAY -> SessionType.FULL_FORCE;
+            case EXHAUSTED -> SessionType.EXHAUSTED;
+        };
     }
 }
