@@ -1212,3 +1212,53 @@ Four files in the incoming diff overlap with locally modified files from this se
 **Step 4 — git pull result:** Aborted by Git with exit code 1. Message: "Your local changes to the following files would be overwritten by merge. Please commit your changes or stash them before you merge." No conflict markers written; working tree untouched.
 
 **Status:** Stopped per instructions. Awaiting engineer decision on resolution path before proceeding. Recommended option: `git stash && git pull && git stash pop` — conflicts (if any) surface as markers for human review.
+
+---
+
+## 2026-07-09 — Atomic Commit Pass (Steps 1–2)
+
+### Scope
+Commit all session work as separate, atomic, independently-reviewable commits. Pull from origin deferred until commit log is confirmed.
+
+---
+
+### Step 1 — git reset
+All staged changes unstaged. Working tree preserved.
+
+### Step 2 — git status
+25 modified tracked files, 18 untracked new files. Nothing staged.
+
+### Step 3 — Deviation from expected 9 groups
+
+**Extra commits required:** The 9 expected groups did not cover 3 large foundational additions that were built during the session series but never committed:
+1. `8994058` — Shared infrastructure (exception handler, Redis testcontainer, JWT/security dependencies, AopConfig)
+2. `a1f8e89` — Auth module (JWT, refresh tokens, registration, login, password reset, SecurityConfig, AppUserDetailsService, all security classes)
+3. `b60d93a` — CurriculumController with list endpoints
+
+These were prerequisites for the targeted fix commits; staging them after the fixes would have produced broken intermediate states.
+
+**Groups absorbed into broader commits:**
+- "SessionController path fix" — SessionController.java was never committed in its intermediate state (/api/v1/sessions without auth). Path fix and session security fix are both in `df55429`.
+
+**Groups with no code to commit:**
+- "Refresh cookie Secure flag fix" — `AuthController.java` still has `.secure(true)` hardcoded; deferred per Task 5 decision, documented in AGENT_LOG.
+- "PRD updates" — `Merge_Final_PRD_v2.0.md` is at `~/Downloads/`, outside the repo.
+
+---
+
+### git log --oneline -15 (local, pre-pull)
+
+```
+b5e6662 Update AGENT_LOG with reverse-engineering audit, bug audit, fix records, and session security log
+df55429 Secure session endpoints: require JWT auth, verify session ownership, remove open permitAll rule
+5647153 Fix rate limiter INCR+EXPIRE race with atomic Lua script via RedisScript
+23b1888 Fix awardXp lost-update race with atomic MongoDB findAndModify and $inc
+4f69a50 Fix NoSuchElementException in identity services to throw ResourceNotFoundException for consistent 404
+b60d93a Add CurriculumController with authenticated list endpoints for stages, concepts, and resources
+8f915f3 Add authentication module: JWT access tokens, refresh token rotation, registration, login, password reset
+a1f8e89 Add shared infrastructure: global exception handling, Redis testcontainer, JWT and auth dependencies
+8994058 Remove stale LoginCredential references from MongoConfig, AuthResponse, StudentResponse
+325eccc Test: Ensure all session module tests use 'test' profile for property fallback
+```
+
+**Status:** Stopped after step 2 (log shown). Awaiting engineer confirmation before proceeding to step 3 (git pull origin main → merge commit).
