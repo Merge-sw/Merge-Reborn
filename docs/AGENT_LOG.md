@@ -1518,5 +1518,27 @@ NOT YET DONE
 - Resolution flow handling (resolution on Drill/Concept_build pass).
 - Wiring direct calls from Practice/Build and Gating modules.
 
+---
+
+## 2026-07-09 19:30 CEST — Build the Remediation Service module (Mission) - Part 3
+
+COMPLETED
+- Created branch `feature/mission-resolution-flow` off `main`.
+- Checked out schema and failure-flow files from `feature/mission-failure-flow`.
+- Implemented `handlePass` in `RemediationServiceImpl` to manage the resolution flow.
+- Added `RESOLUTION` flowType support in `handleMissionGenerationResult` to parse list of resolved mission IDs and update their `passed` field to `true`.
+- Added test case `testResolutionFlow_ResolvesMissions` in `RemediationServiceTest.java`.
+- Updated `InstructorServiceTest.java` to make the Redis pop assertion robust against the background queue worker thread.
+- Ran all tests successfully.
+
+FAILED
+- None.
+
+VERIFICATION NEEDED
+- None.
+
+NOT YET DONE
+- Wiring direct calls from Practice/Build and Gating modules.
+
 
 

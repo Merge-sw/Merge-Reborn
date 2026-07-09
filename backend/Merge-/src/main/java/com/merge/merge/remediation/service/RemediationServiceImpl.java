@@ -78,10 +78,95 @@ public class RemediationServiceImpl implements RemediationService {
     }
 
     @Override
+    public void handlePass(UUID studentId, UUID conceptId, String source, Map<String, Object> attemptData) {
+        log.info("Handling pass flow for student: {}, concept: {}, source: {}", studentId, conceptId, source);
+
+        // 1. Fetch the student's existing open (passed: false) Missions for this conceptId.
+        List<Mission> openMissions = missionRepository.findByStudentIdAndConceptIdAndPassed(studentId, conceptId, false);
+        if (openMissions.isEmpty()) {
+            log.info("No open missions to resolve for student: {}, concept: {}", studentId, conceptId);
+            return;
+        }
+
+        // 2. Build the generation input:
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("flowType", "RESOLUTION");
+        payload.put("studentId", studentId.toString());
+        payload.put("conceptId", conceptId.toString());
+        payload.put("source", source);
+        payload.put("attemptData", attemptData);
+
+        List<Map<String, Object>> existingOpenMissionsList = new ArrayList<>();
+        for (Mission m : openMissions) {
+            Map<String, Object> missionMap = new HashMap<>();
+            missionMap.put("missionId", m.getId().toString());
+            missionMap.put("painPointDescription", m.getPainPointDescription());
+
+            List<Map<String, Object>> historyList = new ArrayList<>();
+            if (m.getAttemptHistory() != null) {
+                for (AttemptHistoryEntry entry : m.getAttemptHistory()) {
+                    Map<String, Object> histEntry = new HashMap<>();
+                    histEntry.put("attemptData", entry.getAttemptData());
+                    histEntry.put("generatedAt", entry.getGeneratedAt().toString());
+                    historyList.add(histEntry);
+                }
+            }
+            missionMap.put("attemptHistory", historyList);
+            existingOpenMissionsList.add(missionMap);
+        }
+        payload.put("existingOpenMissions", existingOpenMissionsList);
+
+        // Fetch opaque Context personalisedData
+        Object personalisedData = null;
+        try {
+            Context context = contextService.getByStudentId(studentId);
+            if (context != null) {
+                personalisedData = context.getPersonalisedData();
+            }
+        } catch (Exception e) {
+            log.warn("Could not retrieve Context personalisedData for student {}: {}", studentId, e.getMessage());
+        }
+        payload.put("personalisedData", personalisedData);
+
+        // 3. Send payload as one single combined prompt to AI Orchestration
+        instructorService.missionGenerate(studentId, conceptId, payload);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public void handleMissionGenerationResult(UUID jobId, UUID studentId, UUID conceptId, String llmResult, Map<String, Object> originalContext) {
         String flowType = (String) originalContext.get("flowType");
         Instant now = Instant.now();
+
+        if ("RESOLUTION".equals(flowType)) {
+            try {
+                String sanitized = sanitizeJson(llmResult);
+                Map<String, Object> parsed = objectMapper.readValue(sanitized, new TypeReference<Map<String, Object>>() {});
+                List<String> resolvedIdsStr = (List<String>) parsed.get("resolvedMissionIds");
+                if (resolvedIdsStr != null) {
+                    for (String idStr : resolvedIdsStr) {
+                        try {
+                            UUID missionId = UUID.fromString(idStr);
+                            Optional<Mission> optionalMission = missionRepository.findById(missionId);
+                            if (optionalMission.isPresent()) {
+                                Mission mission = optionalMission.get();
+                                if (!mission.isPassed()) {
+                                    mission.setPassed(true);
+                                    mission.setUpdatedAt(now);
+                                    missionRepository.save(mission);
+                                    log.info("Mission {} marked as resolved/passed", missionId);
+                                }
+                            }
+                        } catch (IllegalArgumentException e) {
+                            // ignore/null
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to parse resolution LLM result for job " + jobId + ": " + llmResult, e);
+            }
+            return;
+        }
 
         if (!"FAILURE".equals(flowType)) {
             return;
