@@ -1289,3 +1289,42 @@ a1f8e89 Add shared infrastructure: global exception handling, Redis testcontaine
 ```
 
 **Status:** Stopped after step 2 (log shown). Awaiting engineer confirmation before proceeding to step 3 (git pull origin main → merge commit).
+
+---
+
+## 2026-07-09 04:45 PDT — Post-merge integration test run and push to origin
+
+**Trigger:** Engineer requested fresh `mvnw clean test` after merge commit `cd01945` to verify the two bodies of work — this session's fixes (Identity, Auth, Curriculum, Session) and the partner's Instructor/AI Orchestration module — function together in one real JVM run, not just that git merged the text cleanly.
+
+**What ran:**
+
+| Test class | Module | Tests | Result |
+|---|---|---|---|
+| `InstructorServiceTest` | AI Orchestration | 8 | PASS |
+| `SessionControllerTest` | Session | 10 | PASS |
+| `IdleSessionSweeperTest` | Session | 4 | PASS |
+| `SessionEndTest` | Session | 9 | PASS |
+| `SessionServiceTests` | Session | 3 | PASS |
+| `CredentialServiceTest` | Identity/Auth | 5 | PASS |
+| `StudentControllerTest` | Identity | 6 | PASS |
+| `StudentServiceTest` | Identity | 7 | PASS |
+| `EProfileServiceTest` | Identity | 5 | PASS |
+| `AwardXpConcurrencyTest` | Identity | 1 | PASS — expected=100 actual=100 |
+| `AuthServiceTest` | Auth | 3 | PASS |
+| `NoPasswordHashLeakTest` | Auth | 4 | PASS |
+| `ContextServiceTest` | Identity | 6 | PASS |
+| `StageServiceTest` | Curriculum | 1 | PASS |
+| `CurriculumDeletionTest` | Curriculum | 2 | PASS |
+| `CurriculumControllerTest` | Curriculum | 12 | PASS |
+| `ConceptPersistenceTest` | Curriculum | 1 | PASS |
+| `RateLimitServiceTest` | Shared | 2 | PASS |
+
+**Total: 126/126. 0 failures. 0 errors. BUILD SUCCESS.**
+
+**Push:** `git push origin main` — fast-forwarded remote from `250dcb5` to `cd01945`.
+
+**CI badge:** `passing` (GitHub Actions `ci.yml`, `main` branch, confirmed via badge SVG).
+
+**Notable:** `InstructorServiceImpl` logged a real job completion during the test run (`Completed job ... status: COMPLETED`) — the queue worker ran against the Testcontainers Redis instance alongside the session and auth tests with no conflict. Spring Data Redis emitted a harmless warning that `InstructorRepository` could not be identified as a Redis repository (it is a Mongo repository); this is a Spring boot-time scan warning, not a runtime error, and does not affect behaviour.
+
+**Status:** All work from this session is on `main`. CI green. No pending items.
