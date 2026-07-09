@@ -10,6 +10,7 @@ public interface RemediationService {
      */
     void handleFailure(UUID studentId, UUID conceptId, String failureSource, Map<String, Object> attemptData);
 
+
     /**
      * Entry point called directly when a student passes a drill or concept build.
      * Fetches open missions, structures the AI payload, and triggers asynchronous resolution checking.
