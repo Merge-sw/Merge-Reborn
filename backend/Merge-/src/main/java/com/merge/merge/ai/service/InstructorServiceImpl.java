@@ -6,10 +6,12 @@ import com.merge.merge.ai.model.InstructorStatus;
 import com.merge.merge.ai.repository.InstructorRepository;
 import com.merge.merge.build.models.ConceptBuild;
 import com.merge.merge.build.repository.ConceptBuildRepository;
+import com.merge.merge.ai.event.InstructorJobCompletedEvent;
 import com.merge.merge.integration.gemini.GeminiClient;
 import com.merge.merge.shared.queue.RedisTaskQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -27,6 +29,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final GeminiClient geminiClient;
     private final RedisTaskQueue redisTaskQueue;
     private final ConceptBuildRepository conceptBuildRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String QUEUE_NAME = "instructor:job:queue";
 
@@ -238,8 +241,9 @@ public class InstructorServiceImpl implements InstructorService {
         }
 
         job.setUpdatedAt(Instant.now());
-        instructorRepository.save(job);
+        Instructor saved = instructorRepository.save(job);
         log.info("Completed job {} processing with status: {}", jobId, job.getStatus());
+        eventPublisher.publishEvent(new InstructorJobCompletedEvent(this, saved));
     }
 
     @Override
@@ -294,11 +298,36 @@ public class InstructorServiceImpl implements InstructorService {
                             job.getStudentId(), job.getConceptId(), job.getSessionId());
 
             case MISSION_GENERATE -> {
-                // Context.personalisedData is treated as an opaque JSON blob per the spec.
-                // Blending it directly as context metadata.
-                Object contextData = job.getContext();
-                yield String.format("Generate a mission for student: %s and concept: %s. Context personalized data: %s.",
-                        job.getStudentId(), job.getConceptId(), contextData != null ? contextData.toString() : "None");
+                Map<String, Object> contextData = job.getContext();
+                String flowType = contextData != null ? (String) contextData.get("flowType") : "FAILURE";
+                if ("RESOLUTION".equals(flowType)) {
+                    yield String.format(
+                            "You are an expert AI tutor. A student has successfully passed an attempt on concept %s. " +
+                            "Here is the context data: %s.\n" +
+                            "Compare this passing attempt data with the existing open missions/pain points to determine which of them are resolved by this attempt.\n" +
+                            "You must return the result as a raw JSON object in the following format (no other text, no markdown wrapper):\n" +
+                            "{\n" +
+                            "  \"resolvedMissionIds\": [\"uuid-string\"]\n" +
+                            "}",
+                            job.getConceptId(), contextData != null ? contextData.toString() : "None"
+                    );
+                } else {
+                    yield String.format(
+                            "You are an expert AI tutor. A student has failed an attempt on concept %s. " +
+                            "Here is the context data: %s.\n" +
+                            "Identify the specific conceptual pain points/understanding gaps, decide if they match any existing open missions from the context, " +
+                            "and generate or update the advice for each pain point.\n" +
+                            "You must return the result as a raw JSON array in the following format (no other text, no markdown wrapper):\n" +
+                            "[\n" +
+                            "  {\n" +
+                            "    \"painPointDescription\": \"string\",\n" +
+                            "    \"matchedMissionId\": \"string-or-null\",\n" +
+                            "    \"conceptAndContext\": \"string\"\n" +
+                            "  }\n" +
+                            "]",
+                            job.getConceptId(), contextData != null ? contextData.toString() : "None"
+                    );
+                }
             }
 
             case CLEAN_CODE_REVIEW -> {
