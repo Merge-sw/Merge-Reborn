@@ -1884,3 +1884,489 @@ Consumer chain confirmed by grep:
 
 ### NOT YET DONE
 - N/A.
+
+---
+
+## 2026-07-09 — Combined Reverse-Engineering and Bug Audit
+
+### PASS ONE: Reverse-Engineering Audit
+
+#### 1. Full Real Directory Tree of `backend/Merge-/src/main/java`
+```text
+com.merge.merge
+├── MergeApplication.java
+├── ai
+│   ├── event
+│   │   ├── InstructorEventListener.java
+│   │   └── InstructorJobCompletedEvent.java
+│   ├── model
+│   │   ├── Instructor.java
+│   │   ├── InstructorActionType.java
+│   │   └── InstructorStatus.java
+│   ├── repository
+│   │   └── InstructorRepository.java
+│   └── service
+│       ├── InstructorQueueWorker.java
+│       ├── InstructorService.java
+│       └── InstructorServiceImpl.java
+├── build
+│   ├── dto
+│   │   ├── CreateConceptBuildRequest.java
+│   │   └── CreateLevelBuildRequest.java
+│   ├── event
+│   │   ├── BuildCompletedEvent.java
+│   │   ├── BuildSubmittedEvent.java
+│   │   └── ConceptBuildUnlockedEvent.java
+│   ├── models
+│   │   ├── BuildStatus.java
+│   │   ├── ConceptBuild.java
+│   │   └── LevelBuild.java
+│   ├── repository
+│   │   ├── ConceptBuildRepository.java
+│   │   └── LevelBuildRepository.java
+│   ├── service
+│   │   ├── ConceptBuildService.java
+│   │   ├── LevelBuildService.java
+│   │   ├── ProgressionService.java
+│   │   └── impl
+│   │       ├── BuildQueueWorker.java
+│   │       ├── ConceptBuildServiceImpl.java
+│   │       ├── LevelBuildServiceImpl.java
+│   │       └── ProgressionServiceImpl.java
+│   └── web
+│       ├── ConceptBuildController.java
+│       └── LevelBuildController.java
+├── curriculum
+│   ├── dto
+│   │   ├── ConceptResponse.java
+│   │   ├── ResourceResponse.java
+│   │   └── StageResponse.java
+│   ├── models
+│   │   ├── Concept.java
+│   │   ├── PredefinedContentRef.java
+│   │   ├── Resource.java
+│   │   └── Stage.java
+│   ├── repository
+│   │   ├── ConceptRepository.java
+│   │   ├── ResourceRepository.java
+│   │   └── StageRepository.java
+│   ├── service
+│   │   ├── ConceptService.java
+│   │   ├── ResourceService.java
+│   │   ├── StageService.java
+│   │   └── impl
+│   │       ├── ConceptServiceImpl.java
+│   │       ├── ResourceServiceImpl.java
+│   │       └── StageServiceImpl.java
+│   └── CurriculumController.java
+├── identity
+│   ├── dto
+│   │   ├── EProfileResponse.java
+│   │   └── StudentResponse.java
+│   ├── models
+│   │   ├── CompetencyData.java
+│   │   ├── Context.java
+│   │   ├── Credential.java
+│   │   ├── DynamicData.java
+│   │   ├── EProfile.java
+│   │   ├── FailedConcept.java
+│   │   ├── LearningPreference.java
+│   │   ├── LevelOfThinking.java
+│   │   ├── Motivation.java
+│   │   ├── NoveltyOfThinking.java
+│   │   ├── PersonalisedData.java
+│   │   ├── PreferredLanguage.java
+│   │   ├── SfiaScores.java
+│   │   ├── StaticData.java
+│   │   └── SuccessfulMissionApproach.java
+│   ├── repository
+│   │   ├── ContextRepository.java
+│   │   ├── CredentialRepository.java
+│   │   ├── EProfileRepository.java
+│   │   └── StudentRepository.java
+│   ├── service
+│   │   ├── AuthService.java
+│   │   ├── ContextService.java
+│   │   ├── CredentialService.java
+│   │   ├── EProfileService.java
+│   │   ├── StudentService.java
+│   │   ├── TokenEncryptionService.java
+│   │   └── impl
+│   │       └── CredentialServiceImpl.java
+│   └── StudentController.java
+├── integration
+│   ├── gemini
+│   │   ├── GeminiClient.java
+│   │   ├── GeminiRequest.java
+│   │   └── GeminiResponse.java
+│   └── judge0
+│       ├── Judge0Client.java
+│       ├── Judge0RateLimitException.java
+│       ├── Judge0Response.java
+│       ├── Judge0Result.java
+│       ├── MockJudge0Client.java
+│       └── RapidApiJudge0Client.java
+├── practice
+│   ├── dto
+│   │   ├── CreateDrillRequest.java
+│   │   ├── DrillResponse.java
+│   │   └── SubmitDrillRequest.java
+│   ├── event
+│   │   └── DrillPassedEvent.java
+│   ├── model
+│   │   ├── Drill.java
+│   │   └── SubmissionStatus.java
+│   ├── repository
+│   │   └── DrillRepository.java
+│   ├── service
+│   │   ├── DrillService.java
+│   │   └── impl
+│   │       └── DrillServiceImpl.java
+│   ├── DrillController.java
+│   ├── MissionTrigger.java
+│   └── NoOpMissionTrigger.java
+├── remediation
+│   ├── models
+│   │   ├── AttemptHistoryEntry.java
+│   │   └── Mission.java
+│   ├── repository
+│   │   └── MissionRepository.java
+│   └── service
+│       ├── MissionJobListener.java
+│       ├── RemediationService.java
+│       └── RemediationServiceImpl.java
+├── session
+│   ├── ActionType.java
+│   ├── EndReason.java
+│   ├── EndSessionRequest.java
+│   ├── IdleSessionSweeper.java
+│   ├── InquiryDepth.java
+│   ├── Mood.java
+│   ├── PathEntry.java
+│   ├── Result.java
+│   ├── Session.java
+│   ├── SessionAlreadyEndedException.java
+│   ├── SessionController.java
+│   ├── SessionNotFoundException.java
+│   ├── SessionRepository.java
+│   ├── SessionSchedulingConfig.java
+│   ├── SessionService.java
+│   ├── SessionType.java
+│   └── TopicRelevance.java
+└── shared
+    ├── AopConfig.java
+    ├── GlobalExceptionHandler.java
+    ├── MongoConfig.java
+    ├── ResourceNotFoundException.java
+    ├── SessionGuard.java
+    ├── queue
+    │   └── RedisTaskQueue.java
+    ├── security
+    │   ├── AppUserDetailsService.java
+    │   ├── AuthenticatedUser.java
+    │   ├── AuthController.java
+    │   ├── InvalidRefreshTokenException.java
+    │   ├── JwtAuthenticationFilter.java
+    │   ├── JwtService.java
+    │   ├── PasswordResetService.java
+    │   ├── RateLimited.java
+    │   ├── RateLimitingAspect.java
+    │   ├── RefreshToken.java
+    │   ├── RefreshTokenRepository.java
+    │   ├── RefreshTokenService.java
+    │   └── SecurityConfig.java
+    └── web
+        └── SubmissionController.java
+```
+
+#### 2. Verbatim Fields of All Domain Classes Across Every Module
+
+##### **Identity Module**
+- **`Student`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed(unique = true)
+  private String email;
+  private String passwordHash;
+  private String name;
+  private String details;
+  private int xp;
+  private UUID stageId;
+  private boolean internshipEligible;
+  ```
+- **`Credential`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed(unique = true)
+  @NotNull
+  private UUID studentId;
+  @NotBlank
+  private String geminiTokenEncrypted;
+  @NotBlank
+  private String githubTokenEncrypted;
+  @LastModifiedDate
+  private LocalDateTime updatedAt;
+  ```
+- **`Context`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed(unique = true)
+  private UUID studentId;
+  private PersonalisedData personalisedData = new PersonalisedData();
+  ```
+- **`EProfile`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed(unique = true)
+  private UUID studentId;
+  private CompetencyData competencyData = new CompetencyData();
+  ```
+
+##### **Curriculum Module**
+- **`Stage`**:
+  ```java
+  @Id
+  private UUID id;
+  @NotBlank
+  private String name;
+  @Min(1)
+  private int xpThreshold;
+  ```
+- **`Concept`**:
+  ```java
+  @Id
+  private UUID id;
+  @NotNull
+  @Indexed
+  private UUID stageId;
+  private PredefinedContentRef predefinedContentRef;
+  ```
+- **`Resource`**:
+  ```java
+  @Id
+  private UUID id;
+  @NotNull
+  @Indexed
+  private UUID conceptId;
+  @NotBlank
+  private String type;
+  @NotBlank
+  private String title;
+  @NotBlank
+  private String url;
+  ```
+
+##### **Session Module**
+- **`Session`**:
+  ```java
+  @Id
+  private UUID id;
+  private UUID studentId;
+  private Instant startedAt;
+  private Instant lastActivityAt;
+  private Instant endedAt;
+  private EndReason endReason;
+  private Mood mood;
+  private SessionType type;
+  private List<PathEntry> path;
+  ```
+
+##### **Practice Module**
+- **`Drill`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed
+  private UUID conceptId;
+  @Indexed
+  private UUID studentId;
+  private String question;
+  private String answer;
+  private boolean passed;
+  private int xpAwarded;
+  private String feedback;
+  private SubmissionStatus status;
+  private Instant serverDeadline;
+  private Instant answeredAt;
+  @Indexed(unique = true, sparse = true)
+  private String idempotencyKey;
+  private boolean pasteAttempted;
+  private int tabFocusLost;
+  private Instant createdAt;
+  ```
+
+##### **Build Module**
+- **`ConceptBuild`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed
+  private UUID studentId;
+  @Indexed
+  private UUID conceptId;
+  private boolean passed;
+  private int xpAwarded;
+  private String feedback;
+  private BuildStatus status;
+  private String githubLink;
+  @Indexed(unique = true, sparse = true)
+  private String idempotencyKey;
+  private String sourceCode;
+  private String testSuite;
+  private boolean hiddenTestsPassed;
+  private boolean tddSuitePassed;
+  private boolean comprehensionCheckPassed;
+  ```
+- **`LevelBuild`**:
+  ```java
+  @Id
+  private UUID id;
+  @Indexed
+  private UUID studentId;
+  @Indexed
+  private UUID stageId;
+  private boolean passed;
+  private int xpAwarded;
+  private int cleanCodeScore;
+  private boolean sfiaAligned;
+  private String feedback;
+  private BuildStatus status;
+  private String githubLink;
+  @Indexed(unique = true, sparse = true)
+  private String idempotencyKey;
+  private String sourceCode;
+  private String testSuite;
+  private boolean hiddenTestsPassed;
+  private boolean tddSuitePassed;
+  private boolean comprehensionCheckPassed;
+  private Instant createdAt;
+  private Instant updatedAt;
+  ```
+
+##### **AI Orchestration Module**
+- **`Instructor`**:
+  ```java
+  @Id
+  private UUID id;
+  private InstructorActionType actionType;
+  private InstructorStatus status;
+  private String result;
+  private String errorMessage;
+  @Indexed(unique = true, sparse = true)
+  private String idempotencyKey;
+  private UUID studentId;
+  private UUID conceptId;
+  private UUID sessionId;
+  private Map<String, Object> context;
+  private Instant createdAt;
+  private Instant updatedAt;
+  ```
+
+##### **Remediation Module**
+- **`Mission`**:
+  ```java
+  @Id
+  private UUID id;
+  private UUID conceptId;
+  private UUID studentId;
+  private String painPointDescription;
+  private String conceptAndContext;
+  private List<AttemptHistoryEntry> attemptHistory;
+  private boolean passed;
+  private Instant createdAt;
+  private Instant updatedAt;
+  ```
+
+#### 3. Cross-Module Import Audit
+A comprehensive audit of internal imports confirms that domain service-interface-only boundaries are strictly respected:
+- **No Direct Repository Access Across Packages**: No domain module imports any repository belonging to a different package/module. All repository accesses are strictly encapsulated within their owner packages.
+- **No Cross-Module Domain Model Writes**: No domain module modifies entities of other modules directly.
+- **Shared Module Exceptions**:
+  - `AppUserDetailsService` and `PasswordResetService` (located in the `shared.security` package) import `StudentRepository` from the `identity` module. Since the security filter chain and user context loading are system-wide infrastructure layers that sit directly on top of student identities, this dependency is structurally acceptable.
+
+#### 4. Controller API Surface
+Read directly from annotations on the controller classes:
+
+##### **AuthController (`/api/v1/auth`)**
+- `POST /register`: Public access, `@RateLimited` (limit = 3, windowSeconds = 3600).
+- `POST /login`: Public access, `@RateLimited` (limit = 5, windowSeconds = 900, byEmail = true).
+- `POST /refresh`: Public access.
+- `POST /logout`: Public access.
+- `POST /password-reset/request`: Public access.
+- `POST /password-reset/confirm`: Public access.
+
+##### **StudentController (`/api/v1/students`)**
+- `GET /me`: Authenticated (`Authentication` principal required).
+- `GET /me/profile`: Authenticated (`Authentication` principal required).
+
+##### **CurriculumController (`/api/v1`)**
+- `GET /stages`: Authenticated.
+- `GET /stages/{id}`: Authenticated.
+- `GET /concepts`: Authenticated (requires query parameter `stageId`).
+- `GET /concepts/{id}`: Authenticated.
+- `GET /concepts/{id}/resources`: Authenticated.
+
+##### **SessionController (`/api/v1/sessions`)**
+- `POST /{id}/end`: Authenticated (`Authentication` principal required).
+
+##### **DrillController (`/api/v1/drills`)**
+- `POST /`: Authenticated (`Authentication` principal required).
+- `POST /{id}/submit`: Authenticated (`Authentication` principal required).
+
+##### **ConceptBuildController (`/api/v1/concept-builds`)**
+- `POST /`: Authenticated (`Authentication` principal required).
+
+##### **LevelBuildController (`/api/v1/level-builds`)**
+- `POST /`: Authenticated (`Authentication` principal required).
+
+##### **SubmissionController (`/api/v1/submissions`)**
+- `GET /{id}`: Authenticated.
+
+#### 5. Full Test Suite Execution Summary
+- **Total Tests Executed**: 139
+- **Passing Tests**: 137
+- **Failing Tests**: 2 (both in `RemediationServiceTest`):
+  - `RemediationServiceTest.testDrillPassedEvent_TriggersRemediationPass`
+  - `RemediationServiceTest.testBuildCompletedEvent_TriggersRemediationFailure`
+- **Known Failure Context**: The failures are pre-existing on `main`. They occur because `InstructorEventListener` does not yet have event handlers implemented to forward `DrillPassedEvent` and `BuildCompletedEvent(passed=false)` to `remediationService` (part of outstanding partner tasks).
+
+#### 6. PRD and AGENT_LOG Drift Analysis
+- **Drift 1: `buildPassRequired` Field on `Stage`**: PRD §2 lists `buildPassRequired` as a schema field on `Stage` to gate promotion. In the codebase, `Stage` has no such field; instead, `ProgressionServiceImpl` checks that *all* concept builds in the stage are passed (Condition 1).
+- **Drift 2: `conceptId` Field on `Session`**: PRD §2 lists `conceptId` as a direct FK field on `Session` and states "Session is scoped to one Concept for its duration". In the codebase, `Session` has no `conceptId` field; instead, a traversing path of multiple concepts is recorded inside a list of `PathEntry` history objects.
+- **Drift 3: `Context.personalisedData` and `EProfile.competencyData` Internal Structures**: Marked as "OPEN" in the PRD, but implemented as concrete Java classes (`PersonalisedData`, `StaticData`, `DynamicData`, `FailedConcept`, `SuccessfulMissionApproach`, `CompetencyData`, `SfiaScores`) with detailed validation and setters.
+- **Drift 4: `Project` Entity**: Documented in PRD §2 and §9, but completely absent from the codebase (no model, repository, or service exists) as Ticket 8 has not been built.
+- **Drift 5: `InstructorActionType` Enum**: PRD §4 lists `CURRICULUM_WRITE` and `DISENGAGEMENT_COACH` actions, which are missing from the code; the codebase instead includes `CHAT_INTERACTION`, `MISSION_GENERATE`, and `SFIA_ALIGNMENT_EVALUATE` actions which are not in the PRD.
+
+---
+
+### PASS TWO: Bug Audit
+
+#### 1. Security (Broken Object-Level Authorization - BOLA)
+- **Finding**: `SubmissionController.getSubmission(id)` (`GET /api/v1/submissions/{id}`) retrieves and returns `Instructor`, `ConceptBuild`, or `LevelBuild` records by ID without checking if the requesting student owns the record.
+- **Severity**: **HIGH** (Confidentiality leak).
+- **Evidence**: `SubmissionController.java` lines 38-64 retrieves the entities solely by ID and immediately returns them without extracting or comparing the authenticated student ID. Any authenticated student can poll other students' code, test suites, and AI reviews by guessing UUIDs.
+
+#### 2. Concurrency
+- **Finding 1: Remediation Integration Test Race Condition**: `RemediationServiceTest` contains a non-deterministic race condition because `InstructorQueueWorker.pollQueue()` runs in the background while the test thread manually invokes `instructorService.processJob()`.
+  - **Severity**: **MEDIUM** (Flaky test environment).
+  - **Evidence**: Running `RemediationServiceTest` in isolation fails with `AssertionError: Expected size: 1 but was: 2` (both threads processing the job and creating duplicate missions) or `AssertionError: No queued job found` (background thread processed it first, status went past `QUEUED`).
+- **Finding 2: Safe XP Awarding**: Concurrency-safe atomic `findAndModify` is implemented for `ConceptBuild` and `LevelBuild` XP payouts.
+  - **Severity**: **NONE** (Correctly guarded).
+  - **Evidence**: `ConceptBuildServiceImpl.awardXpOnce` and `LevelBuildServiceImpl.awardLevelXpOnce` query `xpAwarded: 0` during update.
+
+#### 3. Boundary and Null Handling
+- **Finding 1: Discarded Root Causes in Cryptographic Layer**: `TokenEncryptionService.java` catches exceptions and throws new `RuntimeException`s without setting the original exception as the cause.
+  - **Severity**: **LOW** (Loses diagnostic stack traces).
+  - **Evidence**: Verbatim blocks at lines 45 (`throw new RuntimeException("Encryption failed")`) and 63 (`throw new RuntimeException("Decryption failed")`) discard the original exception.
+- **Finding 2: Silent Exception Swallowing**: `RemediationServiceImpl.java` catches and silently swallows parsing exceptions without logging them.
+  - **Severity**: **LOW** (Log-less exception swallowing).
+  - **Evidence**: Verbatim catch blocks at lines 160 and 190 catch `IllegalArgumentException` with empty block comments `// ignore/null`.
+
+#### 4. Idempotency
+- **Finding**: Idempotency keys on `ConceptBuild` and `LevelBuild` are client-supplied and checked correctly prior to model creation.
+  - **Severity**: **NONE** (Correctly guarded).
+  - **Evidence**: `ConceptBuildServiceImpl.java` lines 41-47 and `LevelBuildServiceImpl.java` lines 39-44 check repository by `idempotencyKey` and return the existing record if present.
