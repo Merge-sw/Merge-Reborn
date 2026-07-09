@@ -5,9 +5,9 @@ import com.merge.merge.identity.models.LevelOfThinking;
 import com.merge.merge.identity.models.NoveltyOfThinking;
 import com.merge.merge.identity.models.SfiaScores;
 import com.merge.merge.identity.repository.EProfileRepository;
+import com.merge.merge.shared.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -26,7 +26,7 @@ public class EProfileService {
 
     public EProfile getByStudentId(UUID studentId) {
         return eProfileRepository.findByStudentId(studentId)
-                .orElseThrow(() -> new NoSuchElementException("no EProfile for studentId " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException("No EProfile for studentId " + studentId));
     }
 
     public EProfile updateSfiaScores(UUID studentId, SfiaScores sfiaScores) {

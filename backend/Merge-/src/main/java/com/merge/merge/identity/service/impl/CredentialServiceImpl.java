@@ -4,9 +4,9 @@ import com.merge.merge.identity.models.Credential;
 import com.merge.merge.identity.repository.CredentialRepository;
 import com.merge.merge.identity.service.CredentialService;
 import com.merge.merge.identity.service.TokenEncryptionService;
+import com.merge.merge.shared.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -39,14 +39,14 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public String getDecryptedToken(UUID studentId, TokenType type) {
         Credential credential = credentialRepository.findByStudentId(studentId)
-                .orElseThrow(() -> new NoSuchElementException("No credentials for student " + studentId));
+                .orElseThrow(() -> ResourceNotFoundException.forId("Credential", studentId));
 
-        String encrypted = (type == TokenType.GEMINI) 
-                ? credential.getGeminiTokenEncrypted() 
+        String encrypted = (type == TokenType.GEMINI)
+                ? credential.getGeminiTokenEncrypted()
                 : credential.getGithubTokenEncrypted();
 
         if (encrypted == null) {
-            throw new NoSuchElementException("Token not found for type " + type);
+            throw new ResourceNotFoundException("No " + type + " token stored for student " + studentId);
         }
 
         return encryptionService.decrypt(encrypted);

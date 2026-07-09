@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-import java.util.NoSuchElementException;
+import com.merge.merge.shared.ResourceNotFoundException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +58,7 @@ class StudentServiceTest {
     @Test
     void getByIdThrowsWhenStudentDoesNotExist() {
         assertThatThrownBy(() -> studentService.getById(UUID.randomUUID()))
-                .isInstanceOf(NoSuchElementException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

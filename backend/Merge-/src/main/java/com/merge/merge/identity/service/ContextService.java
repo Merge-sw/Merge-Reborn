@@ -4,10 +4,10 @@ import com.merge.merge.identity.models.Context;
 import com.merge.merge.identity.models.LearningPreference;
 import com.merge.merge.identity.models.StaticData;
 import com.merge.merge.identity.repository.ContextRepository;
+import com.merge.merge.shared.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -26,7 +26,7 @@ public class ContextService {
 
     public Context getByStudentId(UUID studentId) {
         return contextRepository.findByStudentId(studentId)
-                .orElseThrow(() -> new NoSuchElementException("no Context for studentId " + studentId));
+                .orElseThrow(() -> new ResourceNotFoundException("No Context for student " + studentId));
     }
 
     public Context recordScoutIngestion(UUID studentId, StaticData staticData) {
