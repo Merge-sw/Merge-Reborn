@@ -9,5 +9,6 @@ public enum InstructorActionType {
     AUDIO_PRIME,
     MISSION_GENERATE,
     CLEAN_CODE_REVIEW,
-    REFLECT
+    REFLECT,
+    SFIA_ALIGNMENT_EVALUATE
 }

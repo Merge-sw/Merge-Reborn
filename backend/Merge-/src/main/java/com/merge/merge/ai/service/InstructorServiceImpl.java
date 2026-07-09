@@ -4,8 +4,7 @@ import com.merge.merge.ai.model.Instructor;
 import com.merge.merge.ai.model.InstructorActionType;
 import com.merge.merge.ai.model.InstructorStatus;
 import com.merge.merge.ai.repository.InstructorRepository;
-import com.merge.merge.build.models.ConceptBuild;
-import com.merge.merge.build.repository.ConceptBuildRepository;
+import com.merge.merge.build.service.ConceptBuildService;
 import com.merge.merge.integration.gemini.GeminiClient;
 import com.merge.merge.shared.queue.RedisTaskQueue;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final InstructorRepository instructorRepository;
     private final GeminiClient geminiClient;
     private final RedisTaskQueue redisTaskQueue;
-    private final ConceptBuildRepository conceptBuildRepository;
+    private final ConceptBuildService conceptBuildService;
 
     private static final String QUEUE_NAME = "instructor:job:queue";
 
@@ -60,9 +59,7 @@ public class InstructorServiceImpl implements InstructorService {
         log.info("Session exhausted for student: {}, concept: {}. Deciding between prime and reinforce.", studentId, conceptId);
 
         // Check if concept build is passed
-        boolean passed = conceptBuildRepository.findByStudentIdAndConceptId(studentId, conceptId)
-                .map(ConceptBuild::isPassed)
-                .orElse(false);
+        boolean passed = conceptBuildService.isConceptBuildPassed(studentId, conceptId);
 
         if (passed) {
             log.info("Concept build passed. Dispatching AUDIO_PRIME.");
@@ -202,6 +199,18 @@ public class InstructorServiceImpl implements InstructorService {
         return enqueueJob(InstructorActionType.REFLECT, studentId, conceptId, null, context, idempotencyKey);
     }
 
+    @Override
+    public Instructor evaluateSfiaAlignmentAsync(UUID studentId, UUID conceptId, String idempotencyKey) {
+        if (idempotencyKey != null) {
+            var existing = instructorRepository.findByIdempotencyKey(idempotencyKey);
+            if (existing.isPresent()) {
+                log.info("SFIA alignment check already exists for idempotencyKey: {}. Returning it.", idempotencyKey);
+                return existing.get();
+            }
+        }
+        return enqueueJob(InstructorActionType.SFIA_ALIGNMENT_EVALUATE, studentId, conceptId, null, null, idempotencyKey);
+    }
+
     // -------------------------------------------------------------------------
     // Job processing for background worker
     // -------------------------------------------------------------------------
@@ -317,6 +326,10 @@ public class InstructorServiceImpl implements InstructorService {
                         job.getStudentId(), job.getConceptId(), Boolean.TRUE.equals(passed) ? "PASSED" : "FAILED", Boolean.TRUE.equals(isGraduation) ? "YES" : "NO"
                 );
             }
+
+            case SFIA_ALIGNMENT_EVALUATE ->
+                    String.format("Evaluate SFIA competency alignment for student: %s on concept: %s. Verify if the dynamically accumulated SFIA indicators align with Stage requirements.",
+                            job.getStudentId(), job.getConceptId());
 
             default -> throw new IllegalArgumentException("Unsupported async action type: " + job.getActionType());
         };

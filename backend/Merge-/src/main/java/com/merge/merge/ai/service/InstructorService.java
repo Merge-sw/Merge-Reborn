@@ -76,6 +76,12 @@ public interface InstructorService {
      */
     Instructor generateReflectionAsync(UUID studentId, UUID conceptId, boolean passed, boolean isGraduation, String idempotencyKey);
 
+    /**
+     * Evaluates SFIA alignment for the student and concept.
+     * Asynchronous (returns QUEUED job).
+     */
+    Instructor evaluateSfiaAlignmentAsync(UUID studentId, UUID conceptId, String idempotencyKey);
+
     // -------------------------------------------------------------------------
     // Job processing for background worker
     // -------------------------------------------------------------------------
