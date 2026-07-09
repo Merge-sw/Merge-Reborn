@@ -347,3 +347,23 @@ VERIFICATION NEEDED
 
 NOT YET DONE
 - Concrete JSON schema mapping of `Context.personalisedData` (currently treated as an opaque Map for `MISSION_GENERATE` - tracked via GitHub [Issue #2](https://github.com/mxrtins04/Merge-Reborn/issues/2)).
+
+---
+
+## 2026-07-09 18:50 CEST — Build the Remediation Service module (Mission) - Part 4
+
+COMPLETED
+- Created branch `feature/mission-integration` off `main`.
+- Checked out and synchronized all files from `feature/mission-resolution-flow`.
+- Implemented `RemediationIntegrationListener` to listen to `DrillPassedEvent` and `BuildCompletedEvent` domain events and wire them to `RemediationService`.
+- Added new event integration tests `testDrillPassedEvent_TriggersRemediationPass` and `testBuildCompletedEvent_TriggersRemediationFailure` in `RemediationServiceTest.java`.
+- Ran all 63 unit and integration tests successfully.
+
+FAILED
+- None.
+
+VERIFICATION NEEDED
+- None.
+
+NOT YET DONE
+- None. All tasks completed.
