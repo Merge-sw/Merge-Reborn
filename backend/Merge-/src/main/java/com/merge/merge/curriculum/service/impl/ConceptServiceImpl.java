@@ -5,9 +5,10 @@ import com.merge.merge.curriculum.models.PredefinedContentRef;
 import com.merge.merge.curriculum.repository.ConceptRepository;
 import com.merge.merge.curriculum.service.ConceptService;
 import com.merge.merge.curriculum.service.ResourceService;
+import com.merge.merge.shared.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,7 +31,12 @@ public class ConceptServiceImpl implements ConceptService {
     @Override
     public Concept getById(UUID conceptId) {
         return conceptRepository.findById(conceptId)
-                .orElseThrow(() -> new NoSuchElementException("no Concept with id " + conceptId));
+                .orElseThrow(() -> ResourceNotFoundException.forId("Concept", conceptId));
+    }
+
+    @Override
+    public List<Concept> listByStageId(UUID stageId) {
+        return conceptRepository.findByStageId(stageId);
     }
 
     @Override

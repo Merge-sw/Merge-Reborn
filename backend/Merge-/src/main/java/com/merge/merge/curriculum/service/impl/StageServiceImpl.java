@@ -4,9 +4,10 @@ import com.merge.merge.curriculum.models.Stage;
 import com.merge.merge.curriculum.repository.StageRepository;
 import com.merge.merge.curriculum.service.ConceptService;
 import com.merge.merge.curriculum.service.StageService;
+import com.merge.merge.shared.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.NoSuchElementException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,7 +30,12 @@ public class StageServiceImpl implements StageService {
     @Override
     public Stage getById(UUID stageId) {
         return stageRepository.findById(stageId)
-                .orElseThrow(() -> new NoSuchElementException("no Stage with id " + stageId));
+                .orElseThrow(() -> ResourceNotFoundException.forId("Stage", stageId));
+    }
+
+    @Override
+    public List<Stage> listAll() {
+        return stageRepository.findAll();
     }
 
     @Override
