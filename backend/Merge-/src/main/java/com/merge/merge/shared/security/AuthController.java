@@ -9,6 +9,7 @@ import com.merge.merge.shared.security.dto.PasswordResetRequest;
 import com.merge.merge.shared.security.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,10 @@ class AuthController {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetService passwordResetService;
+
+    /** True in all environments except local dev override (cookie.secure=false in dev profile). */
+    @Value("${cookie.secure:true}")
+    private boolean cookieSecure;
 
     @PostMapping("/register")
     @RateLimited(key = "register", limit = 3, windowSeconds = 3600)
@@ -107,10 +112,10 @@ class AuthController {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).body(body);
     }
 
-    private static ResponseCookie buildRefreshCookie(String value, int maxAgeSeconds) {
+    private ResponseCookie buildRefreshCookie(String value, int maxAgeSeconds) {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, value)
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .sameSite("Strict")
                 .path("/api/v1/auth")
                 .maxAge(maxAgeSeconds)
