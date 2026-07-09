@@ -23,7 +23,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-class IdleSessionSweeper {
+public class IdleSessionSweeper {
 
     /**
      * Idle threshold: 5 minutes, expressed in milliseconds for {@code @Scheduled}.
@@ -35,7 +35,7 @@ class IdleSessionSweeper {
     private final SessionRepository sessionRepository;
 
     @Scheduled(fixedDelay = IDLE_THRESHOLD_MS)
-    void closeIdleSessions() {
+    public void closeIdleSessions() {
         Instant cutoff = Instant.now().minusMillis(IDLE_THRESHOLD_MS);
         List<Session> staleSessions = sessionRepository.findByEndedAtIsNullAndLastActivityAtBefore(cutoff);
 

@@ -147,6 +147,7 @@ spring.docker.compose.enabled=false
 
 management.endpoint.health.show-details=always
 ```
+<<<<<<< Updated upstream
 ---
 ## 2026-07-08 04:51 PDT — Reset, Selective Stage, and Push to Branch
 COMPLETED
@@ -276,3 +277,39 @@ VERIFICATION NEEDED
 
 NOT YET DONE
 - None.
+
+---
+
+## 2026-07-09 10:46 CEST — Build the AI Orchestration module (Instructor)
+
+COMPLETED
+- Resolved two pre-existing compilation errors blocking test execution by making `IdleSessionSweeper` and its `closeIdleSessions()` method public.
+- Updated `pom.xml` to include missing `spring-boot-starter-validation` and `spring-boot-starter-data-redis` dependencies.
+- Added a Redis Container to `TestcontainersConfiguration.java` to support integration tests of Redis-backed features.
+- Implemented `ConceptBuild` model and `ConceptBuildRepository` under `com.merge.merge.build` as stubs for gating checks.
+- Created `RedisTaskQueue` in `com.merge.merge.shared.queue` as a minimal shared task queue abstraction using Redis List operations.
+- Built a native Gemini API integration (`GeminiRequest`, `GeminiResponse`, `GeminiClient` in `com.merge.merge.integration.gemini`) with an automatic mock fallback when `gemini.api.key=mock`.
+- Defined `InstructorActionType`, `InstructorStatus`, `Instructor` entity, and `InstructorRepository` under `com.merge.merge.ai`.
+- Implemented `InstructorService` and `InstructorServiceImpl` supporting:
+  - Synchronous execution: `DRILL_GENERATE`, `COMPREHENSION_GENERATE`, `CHAT_INTERACTION`.
+  - Asynchronous background enqueuing: `BUILD_PRD_GENERATE`, `AUDIO_REINFORCE`, `AUDIO_PRIME`, `MISSION_GENERATE`, `CLEAN_CODE_REVIEW`, `REFLECT`.
+  - Inter-module read in `handleSessionExhausted` reading `ConceptBuild.passed` state from the build module to select between `AUDIO_PRIME` and `AUDIO_REINFORCE`.
+  - Idempotency guards: checks and returns existing COMPLETED generations for `AUDIO_REINFORCE`, `AUDIO_PRIME`, and `REFLECT`; reuses existing build keys for `BUILD_PRD_GENERATE` and `CLEAN_CODE_REVIEW`.
+  - Stubbed prompts with explicit TODO comments for `REFLECT` and opaque context binding for `MISSION_GENERATE`.
+- Implemented a unified `InstructorEventListener` in `com.merge.merge.ai.event` that listens to all 5 event types.
+- Implemented `InstructorQueueWorker` in `com.merge.merge.ai.service` that polls the Redis queue every second and executes tasks in the background using `@Qualifier("applicationTaskExecutor")`.
+- Exposed the `GET /submissions/{id}` endpoint in `InstructorController` for frontend polling.
+- Added default Gemini properties to `application.properties` (`gemini.api.key=mock`, `gemini.model=gemini-1.5-flash`).
+- Wrote full unit/integration test coverage in `InstructorServiceTest.java` verifying all sync/async flows, event reactions, queueing, and idempotency logic.
+- Ran the test suite via Maven and verified all 73 tests pass successfully.
+- Added actual personalized prompt building logic for the `REFLECT` action type.
+- Created a GitHub issue template at `.github/ISSUE_TEMPLATE/define-context-personalised-data-structure.md` and successfully created GitHub [Issue #2](https://github.com/mxrtins04/Merge-Reborn/issues/2) outlining the requirements and acceptance criteria for defining `Context.personalisedData` structure.
+
+FAILED
+- None.
+
+VERIFICATION NEEDED
+- Verify that `gemini-1.5-flash` model and the `v1beta` endpoint format are aligned with the production deployment settings when configuring a real `gemini.api.key`.
+
+NOT YET DONE
+- Concrete JSON schema mapping of `Context.personalisedData` (currently treated as an opaque Map for `MISSION_GENERATE` - tracked via GitHub [Issue #2](https://github.com/mxrtins04/Merge-Reborn/issues/2)).
